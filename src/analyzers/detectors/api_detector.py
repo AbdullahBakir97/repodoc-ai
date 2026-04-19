@@ -15,9 +15,7 @@ logger = logging.getLogger(__name__)
 # Patterns for Python API routes
 _PYTHON_ROUTE_PATTERNS: list[re.Pattern[str]] = [
     # FastAPI / Flask style: @app.get("/path") or @router.post("/path")
-    re.compile(
-        r"@(?:app|router)\.(get|post|put|patch|delete)\(\s*[\"']([^\"']+)[\"']"
-    ),
+    re.compile(r"@(?:app|router)\.(get|post|put|patch|delete)\(\s*[\"']([^\"']+)[\"']"),
     # Django urlpatterns: path("route/", view, name="...")
     re.compile(r"path\(\s*[\"']([^\"']+)[\"']"),
 ]
@@ -25,9 +23,7 @@ _PYTHON_ROUTE_PATTERNS: list[re.Pattern[str]] = [
 # Patterns for JavaScript/TypeScript API routes
 _JS_ROUTE_PATTERNS: list[re.Pattern[str]] = [
     # Express style: app.get("/path", ...) or router.post("/path", ...)
-    re.compile(
-        r"(?:app|router)\.(get|post|put|patch|delete)\(\s*[\"']([^\"']+)[\"']"
-    ),
+    re.compile(r"(?:app|router)\.(get|post|put|patch|delete)\(\s*[\"']([^\"']+)[\"']"),
     # Next.js API route export
     re.compile(r"export\s+(?:default\s+)?(?:async\s+)?function\s+(\w+)"),
 ]
@@ -47,9 +43,7 @@ class APIDetector:
     def __init__(self, github_client: IGitHubClient) -> None:
         self._client = github_client
 
-    async def detect(
-        self, owner: str, repo: str, tree: list[FileNode]
-    ) -> list[tuple[str, str, str]]:
+    async def detect(self, owner: str, repo: str, tree: list[FileNode]) -> list[tuple[str, str, str]]:
         """Find API routes in the repository.
 
         Args:
@@ -65,9 +59,7 @@ class APIDetector:
 
         for file_node in candidates:
             try:
-                content = await self._client.get_file_content(
-                    owner, repo, file_node.path
-                )
+                content = await self._client.get_file_content(owner, repo, file_node.path)
                 ext = self._get_ext(file_node.name)
 
                 if ext in _PYTHON_EXTS:
@@ -79,9 +71,7 @@ class APIDetector:
 
         return routes
 
-    def _find_candidates(
-        self, tree: list[FileNode], max_depth: int = 2, current_depth: int = 0
-    ) -> list[FileNode]:
+    def _find_candidates(self, tree: list[FileNode], max_depth: int = 2, current_depth: int = 0) -> list[FileNode]:
         """Find source files that might contain API route definitions.
 
         Only scans files within src/ directory up to max_depth levels.
@@ -99,11 +89,7 @@ class APIDetector:
         for node in tree:
             if node.is_dir:
                 if current_depth < max_depth:
-                    candidates.extend(
-                        self._find_candidates(
-                            node.children, max_depth, current_depth + 1
-                        )
-                    )
+                    candidates.extend(self._find_candidates(node.children, max_depth, current_depth + 1))
             else:
                 ext = self._get_ext(node.name)
                 if ext in _PYTHON_EXTS or ext in _JS_EXTS:
@@ -123,9 +109,7 @@ class APIDetector:
         return candidates
 
     @staticmethod
-    def _scan_python(
-        content: str, file_path: str
-    ) -> list[tuple[str, str, str]]:
+    def _scan_python(content: str, file_path: str) -> list[tuple[str, str, str]]:
         """Scan Python source code for API routes.
 
         Args:
@@ -142,25 +126,27 @@ class APIDetector:
                 groups = match.groups()
                 if len(groups) == 2:
                     method, path = groups
-                    routes.append((
-                        method.upper(),
-                        path,
-                        f"Defined in {file_path}",
-                    ))
+                    routes.append(
+                        (
+                            method.upper(),
+                            path,
+                            f"Defined in {file_path}",
+                        )
+                    )
                 elif len(groups) == 1:
                     # Django-style path
-                    routes.append((
-                        "ANY",
-                        groups[0],
-                        f"URL pattern in {file_path}",
-                    ))
+                    routes.append(
+                        (
+                            "ANY",
+                            groups[0],
+                            f"URL pattern in {file_path}",
+                        )
+                    )
 
         return routes
 
     @staticmethod
-    def _scan_js(
-        content: str, file_path: str
-    ) -> list[tuple[str, str, str]]:
+    def _scan_js(content: str, file_path: str) -> list[tuple[str, str, str]]:
         """Scan JavaScript/TypeScript source code for API routes.
 
         Args:
@@ -177,22 +163,24 @@ class APIDetector:
                 groups = match.groups()
                 if len(groups) == 2:
                     method, path = groups
-                    routes.append((
-                        method.upper(),
-                        path,
-                        f"Defined in {file_path}",
-                    ))
+                    routes.append(
+                        (
+                            method.upper(),
+                            path,
+                            f"Defined in {file_path}",
+                        )
+                    )
                 elif len(groups) == 1:
                     # Next.js style export
                     func_name = groups[0]
-                    method = func_name.upper() if func_name in (
-                        "GET", "POST", "PUT", "PATCH", "DELETE"
-                    ) else "HANDLER"
-                    routes.append((
-                        method,
-                        file_path,
-                        f"Export function {func_name}",
-                    ))
+                    method = func_name.upper() if func_name in ("GET", "POST", "PUT", "PATCH", "DELETE") else "HANDLER"
+                    routes.append(
+                        (
+                            method,
+                            file_path,
+                            f"Export function {func_name}",
+                        )
+                    )
 
         return routes
 

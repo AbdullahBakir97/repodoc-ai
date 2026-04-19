@@ -62,9 +62,7 @@ class FileParser(IFileParser):
         except ScanError:
             raise
         except Exception as exc:
-            raise ScanError(
-                f"Failed to parse {path} in {owner}/{repo}: {exc}"
-            ) from exc
+            raise ScanError(f"Failed to parse {path} in {owner}/{repo}: {exc}") from exc
 
     @staticmethod
     def _parse_package_json(content: str) -> dict[str, Any]:

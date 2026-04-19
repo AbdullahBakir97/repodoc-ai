@@ -83,11 +83,7 @@ class InstallationGenerator:
 
         # Check for pyproject.toml with pip — prefer editable install
         if pm == PackageManager.PIP:
-            has_pyproject = any(
-                node.name == "pyproject.toml"
-                for node in repo_info.tree
-                if not node.is_dir
-            )
+            has_pyproject = any(node.name == "pyproject.toml" for node in repo_info.tree if not node.is_dir)
             if has_pyproject:
                 install_cmd = "pip install -e ."
 

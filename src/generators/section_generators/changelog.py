@@ -75,9 +75,7 @@ class ChangelogGenerator:
             enabled=True,
         )
 
-    def _group_commits(
-        self, commits: list[CommitInfo]
-    ) -> dict[str, list[str]]:
+    def _group_commits(self, commits: list[CommitInfo]) -> dict[str, list[str]]:
         """Group commits by conventional commit category.
 
         Commits that don't follow conventional format are placed

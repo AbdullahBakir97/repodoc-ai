@@ -33,9 +33,7 @@ class CommitAnalyzer(ICommitAnalyzer):
     def __init__(self, github_client: IGitHubClient) -> None:
         self._client = github_client
 
-    async def analyze(
-        self, owner: str, repo: str, count: int = 20
-    ) -> list[CommitInfo]:
+    async def analyze(self, owner: str, repo: str, count: int = 20) -> list[CommitInfo]:
         """Analyze recent commits from a repository.
 
         Args:
@@ -55,9 +53,7 @@ class CommitAnalyzer(ICommitAnalyzer):
         except ScanError:
             raise
         except Exception as exc:
-            raise ScanError(
-                f"Failed to analyze commits for {owner}/{repo}: {exc}"
-            ) from exc
+            raise ScanError(f"Failed to analyze commits for {owner}/{repo}: {exc}") from exc
 
     def get_contributors(self, commits: list[CommitInfo]) -> list[str]:
         """Identify top contributors from commit history.
@@ -73,9 +69,7 @@ class CommitAnalyzer(ICommitAnalyzer):
             counter[commit.author] += 1
         return [author for author, _ in counter.most_common()]
 
-    def group_by_type(
-        self, commits: list[CommitInfo]
-    ) -> dict[str, list[CommitInfo]]:
+    def group_by_type(self, commits: list[CommitInfo]) -> dict[str, list[CommitInfo]]:
         """Group commits by conventional commit type.
 
         Args:

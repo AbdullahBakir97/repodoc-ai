@@ -8,27 +8,29 @@ from src.generators.templates import STRUCTURE_TEMPLATE
 __all__ = ["StructureGenerator"]
 
 # Directories to skip in the tree rendering
-_IGNORED_DIRS: frozenset[str] = frozenset({
-    "node_modules",
-    ".git",
-    "__pycache__",
-    ".venv",
-    "venv",
-    ".env",
-    ".mypy_cache",
-    ".pytest_cache",
-    ".ruff_cache",
-    ".tox",
-    ".eggs",
-    "dist",
-    "build",
-    ".next",
-    ".nuxt",
-    "target",
-    "coverage",
-    ".coverage",
-    "htmlcov",
-})
+_IGNORED_DIRS: frozenset[str] = frozenset(
+    {
+        "node_modules",
+        ".git",
+        "__pycache__",
+        ".venv",
+        "venv",
+        ".env",
+        ".mypy_cache",
+        ".pytest_cache",
+        ".ruff_cache",
+        ".tox",
+        ".eggs",
+        "dist",
+        "build",
+        ".next",
+        ".nuxt",
+        "target",
+        "coverage",
+        ".coverage",
+        "htmlcov",
+    }
+)
 
 # Brief descriptions for well-known directories
 _DIR_DESCRIPTIONS: dict[str, str] = {
@@ -138,9 +140,7 @@ class StructureGenerator:
                 extension = "    " if is_last else "\u2502   "
                 child_prefix = prefix + extension
                 filtered_children = self._filter_and_sort(node.children)
-                self._render_nodes(
-                    filtered_children, child_prefix, lines, depth + 1
-                )
+                self._render_nodes(filtered_children, child_prefix, lines, depth + 1)
 
     def _filter_and_sort(self, nodes: list[FileNode]) -> list[FileNode]:
         """Filter out ignored directories and sort directories first.
@@ -151,9 +151,6 @@ class StructureGenerator:
         Returns:
             A filtered and sorted list of file nodes.
         """
-        filtered = [
-            n for n in nodes
-            if not (n.is_dir and n.name in _IGNORED_DIRS)
-        ]
+        filtered = [n for n in nodes if not (n.is_dir and n.name in _IGNORED_DIRS)]
         # Directories first, then files, alphabetical within each group
         return sorted(filtered, key=lambda n: (not n.is_dir, n.name.lower()))

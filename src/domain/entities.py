@@ -99,11 +99,7 @@ class ReadmeDocument:
     @property
     def content(self) -> str:
         """Render all enabled sections in order."""
-        return "\n\n".join(
-            s.content
-            for s in sorted(self.sections, key=lambda s: s.order)
-            if s.enabled
-        )
+        return "\n\n".join(s.content for s in sorted(self.sections, key=lambda s: s.order) if s.enabled)
 
 
 @dataclass(slots=True)

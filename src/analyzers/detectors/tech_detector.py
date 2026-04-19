@@ -100,7 +100,6 @@ class TechDetector(ITechDetector):
         """
         all_files = self._flatten(tree)
         file_names = {node.name for node in all_files}
-        file_paths = {node.path for node in all_files}
 
         primary_language, languages = self._detect_languages(all_files)
         framework = self._detect_framework(config_data)
@@ -110,9 +109,7 @@ class TechDetector(ITechDetector):
         has_tests = self._detect_tests(all_files)
         has_docs = self._detect_docs(all_files)
 
-        python_version = config_data.get("pyproject.toml", {}).get(
-            "python_requires"
-        )
+        python_version = config_data.get("pyproject.toml", {}).get("python_requires")
         node_version = None
 
         return TechStack(
@@ -145,9 +142,7 @@ class TechDetector(ITechDetector):
                 result.extend(self._flatten(node.children))
         return result
 
-    def _detect_languages(
-        self, files: list[FileNode]
-    ) -> tuple[ProjectType, list[str]]:
+    def _detect_languages(self, files: list[FileNode]) -> tuple[ProjectType, list[str]]:
         """Detect primary language and language distribution.
 
         Args:
@@ -171,10 +166,7 @@ class TechDetector(ITechDetector):
 
         total = sum(counter.values())
         primary = counter.most_common(1)[0][0]
-        languages = [
-            f"{lang.value.capitalize()} {count * 100 // total}%"
-            for lang, count in counter.most_common()
-        ]
+        languages = [f"{lang.value.capitalize()} {count * 100 // total}%" for lang, count in counter.most_common()]
 
         return primary, languages
 
@@ -289,10 +281,7 @@ class TechDetector(ITechDetector):
             if f.is_dir and f.name in test_dirs:
                 return True
             if not f.is_dir and (
-                f.name.startswith("test_")
-                or f.name.endswith("_test.py")
-                or ".test." in f.name
-                or ".spec." in f.name
+                f.name.startswith("test_") or f.name.endswith("_test.py") or ".test." in f.name or ".spec." in f.name
             ):
                 return True
         return False

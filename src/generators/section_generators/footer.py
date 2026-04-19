@@ -58,10 +58,7 @@ class FooterGenerator:
         license_type = repo_info.tech_stack.license_type
 
         if license_type in (LicenseType.UNKNOWN, LicenseType.PROPRIETARY):
-            return (
-                "## License\n\n"
-                "See the [LICENSE](LICENSE) file for license information."
-            )
+            return "## License\n\nSee the [LICENSE](LICENSE) file for license information."
 
         return (
             f"## License\n\n"

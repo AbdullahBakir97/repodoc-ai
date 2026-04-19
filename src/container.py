@@ -25,6 +25,7 @@ __all__ = ["Container"]
 # These will be replaced by real implementations in future modules.
 # ---------------------------------------------------------------------------
 
+
 class _RepoScanner:
     """Scans the repository tree, filtering by config exclusions."""
 
@@ -35,10 +36,7 @@ class _RepoScanner:
         """Return the filtered file tree for the repository."""
         tree = await self._client.get_tree(owner, repo)
         exclude = set(config.exclude_dirs)
-        return [
-            entry for entry in tree
-            if not any(part in exclude for part in entry.get("path", "").split("/"))
-        ]
+        return [entry for entry in tree if not any(part in exclude for part in entry.get("path", "").split("/"))]
 
 
 class _FileParser:
@@ -50,8 +48,14 @@ class _FileParser:
     async def parse(self, owner: str, repo: str, tree: list[dict]) -> dict:
         """Parse known config files and return their contents."""
         config_files = {
-            "package.json", "pyproject.toml", "setup.py", "setup.cfg",
-            "Cargo.toml", "go.mod", "pom.xml", "build.gradle",
+            "package.json",
+            "pyproject.toml",
+            "setup.py",
+            "setup.cfg",
+            "Cargo.toml",
+            "go.mod",
+            "pom.xml",
+            "build.gradle",
         }
         result: dict = {}
         for entry in tree:

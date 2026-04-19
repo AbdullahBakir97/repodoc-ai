@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 
-from fastapi import Depends, Request
+from fastapi import Request
 
 from src.config.settings import Settings
 from src.container import Container
@@ -10,7 +10,7 @@ from src.container import Container
 __all__ = ["get_settings", "get_container"]
 
 
-@lru_cache()
+@lru_cache
 def get_settings() -> Settings:
     """Get the cached application settings singleton.
 

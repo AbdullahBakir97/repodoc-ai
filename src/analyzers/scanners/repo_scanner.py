@@ -57,11 +57,7 @@ class RepoScanner(IRepoScanner):
                 if node.name.lower() in ("readme.md", "readme.rst", "readme.txt"):
                     metadata["has_readme"] = True
                     try:
-                        metadata["existing_readme"] = (
-                            await self._client.get_file_content(
-                                owner, repo, node.path
-                            )
-                        )
+                        metadata["existing_readme"] = await self._client.get_file_content(owner, repo, node.path)
                     except Exception:
                         logger.warning("Could not read existing README")
                     break
@@ -73,9 +69,7 @@ class RepoScanner(IRepoScanner):
         except Exception as exc:
             raise ScanError(f"Failed to scan {owner}/{repo}: {exc}") from exc
 
-    def _build_tree(
-        self, tree_data: list[dict], max_depth: int = 2
-    ) -> list[FileNode]:
+    def _build_tree(self, tree_data: list[dict], max_depth: int = 2) -> list[FileNode]:
         """Build a list of FileNode objects from raw GitHub tree data.
 
         Args:

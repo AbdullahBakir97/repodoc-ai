@@ -59,9 +59,7 @@ class ICommitAnalyzer(ABC):
     """Analyzes commit history of a repository."""
 
     @abstractmethod
-    async def analyze(
-        self, owner: str, repo: str, count: int = 20
-    ) -> list[CommitInfo]:
+    async def analyze(self, owner: str, repo: str, count: int = 20) -> list[CommitInfo]:
         """Analyze recent commits.
 
         Args:
@@ -149,9 +147,7 @@ class IGitHubClient(ABC):
         """
 
     @abstractmethod
-    async def get_commits(
-        self, owner: str, repo: str, count: int = 20
-    ) -> list[dict]:
+    async def get_commits(self, owner: str, repo: str, count: int = 20) -> list[dict]:
         """Get recent commits.
 
         Args:
@@ -177,9 +173,7 @@ class IGitHubClient(ABC):
         """
 
     @abstractmethod
-    async def create_branch(
-        self, owner: str, repo: str, branch: str, from_ref: str
-    ) -> None:
+    async def create_branch(self, owner: str, repo: str, branch: str, from_ref: str) -> None:
         """Create a new branch.
 
         Args:

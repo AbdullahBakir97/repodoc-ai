@@ -21,15 +21,30 @@ from src.domain.enums import (
 def sample_tree() -> list[FileNode]:
     """Sample file tree for a Python FastAPI project."""
     return [
-        FileNode(path="src", name="src", is_dir=True, children=[
-            FileNode(path="src/main.py", name="main.py", is_dir=False, size=500),
-            FileNode(path="src/models", name="models", is_dir=True, children=[
-                FileNode(path="src/models/user.py", name="user.py", is_dir=False, size=300),
-            ]),
-        ]),
-        FileNode(path="tests", name="tests", is_dir=True, children=[
-            FileNode(path="tests/test_main.py", name="test_main.py", is_dir=False, size=200),
-        ]),
+        FileNode(
+            path="src",
+            name="src",
+            is_dir=True,
+            children=[
+                FileNode(path="src/main.py", name="main.py", is_dir=False, size=500),
+                FileNode(
+                    path="src/models",
+                    name="models",
+                    is_dir=True,
+                    children=[
+                        FileNode(path="src/models/user.py", name="user.py", is_dir=False, size=300),
+                    ],
+                ),
+            ],
+        ),
+        FileNode(
+            path="tests",
+            name="tests",
+            is_dir=True,
+            children=[
+                FileNode(path="tests/test_main.py", name="test_main.py", is_dir=False, size=200),
+            ],
+        ),
         FileNode(path="pyproject.toml", name="pyproject.toml", is_dir=False, size=800),
         FileNode(path="Dockerfile", name="Dockerfile", is_dir=False, size=200),
         FileNode(path="README.md", name="README.md", is_dir=False, size=1000),
@@ -57,10 +72,26 @@ def sample_tech_stack() -> TechStack:
 def sample_commits() -> list[CommitInfo]:
     """Sample commit history."""
     return [
-        CommitInfo(sha="abc123", message="feat: add user authentication", author="dev1", date="2026-04-18", files_changed=5),
-        CommitInfo(sha="def456", message="fix: resolve login crash on empty email", author="dev1", date="2026-04-17", files_changed=2),
-        CommitInfo(sha="ghi789", message="docs: update API documentation", author="dev2", date="2026-04-16", files_changed=1),
-        CommitInfo(sha="jkl012", message="refactor: clean up database models", author="dev1", date="2026-04-15", files_changed=8),
+        CommitInfo(
+            sha="abc123", message="feat: add user authentication", author="dev1", date="2026-04-18", files_changed=5
+        ),
+        CommitInfo(
+            sha="def456",
+            message="fix: resolve login crash on empty email",
+            author="dev1",
+            date="2026-04-17",
+            files_changed=2,
+        ),
+        CommitInfo(
+            sha="ghi789", message="docs: update API documentation", author="dev2", date="2026-04-16", files_changed=1
+        ),
+        CommitInfo(
+            sha="jkl012",
+            message="refactor: clean up database models",
+            author="dev1",
+            date="2026-04-15",
+            files_changed=8,
+        ),
     ]
 
 

@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from src.domain.entities import RepoInfo
-from src.domain.enums import CIProvider, Framework, LicenseType, ProjectType
+from src.domain.enums import CIProvider, Framework, ProjectType
 
 __all__ = ["BadgeGenerator"]
 
@@ -13,7 +15,7 @@ class BadgeGenerator:
 
     BASE_URL = "https://img.shields.io/badge"
 
-    _LANGUAGE_COLORS: dict[str, str] = {
+    _LANGUAGE_COLORS: ClassVar[dict[str, str]] = {
         "python": "3776AB",
         "javascript": "F7DF1E",
         "typescript": "3178C6",
@@ -26,7 +28,7 @@ class BadgeGenerator:
         "unknown": "gray",
     }
 
-    _FRAMEWORK_COLORS: dict[str, str] = {
+    _FRAMEWORK_COLORS: ClassVar[dict[str, str]] = {
         "FastAPI": "009688",
         "Django": "092E20",
         "Flask": "000000",
@@ -42,7 +44,7 @@ class BadgeGenerator:
         "Actix": "000000",
     }
 
-    _FRAMEWORK_LOGOS: dict[str, str] = {
+    _FRAMEWORK_LOGOS: ClassVar[dict[str, str]] = {
         "FastAPI": "fastapi",
         "Django": "django",
         "Flask": "flask",
@@ -137,11 +139,7 @@ class BadgeGenerator:
         Returns:
             Markdown image string for the license badge.
         """
-        return (
-            f"![License]"
-            f"(https://img.shields.io/github/license/{owner}/{repo}"
-            f"?style=for-the-badge)"
-        )
+        return f"![License](https://img.shields.io/github/license/{owner}/{repo}?style=for-the-badge)"
 
     def _ci_badge(self, owner: str, repo: str) -> str:
         """Generate a GitHub Actions CI status badge.
@@ -166,11 +164,7 @@ class BadgeGenerator:
         Returns:
             Markdown image string for the Docker badge.
         """
-        return (
-            "![Docker]"
-            "(https://img.shields.io/badge/Docker-2496ED"
-            "?style=for-the-badge&logo=docker&logoColor=white)"
-        )
+        return "![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)"
 
     def _tests_badge(self) -> str:
         """Generate a tests badge.
@@ -178,8 +172,4 @@ class BadgeGenerator:
         Returns:
             Markdown image string for the tests badge.
         """
-        return (
-            "![Tests]"
-            "(https://img.shields.io/badge/Tests-passing-brightgreen"
-            "?style=for-the-badge)"
-        )
+        return "![Tests](https://img.shields.io/badge/Tests-passing-brightgreen?style=for-the-badge)"

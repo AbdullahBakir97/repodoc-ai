@@ -11,13 +11,9 @@ __all__ = ["APIDocsGenerator"]
 # Patterns to detect API route definitions across frameworks
 _ROUTE_PATTERNS: list[re.Pattern[str]] = [
     # FastAPI / Flask decorators: @app.get("/path")
-    re.compile(
-        r"@\w+\.(get|post|put|patch|delete)\s*\(\s*[\"']([^\"']+)[\"']"
-    ),
+    re.compile(r"@\w+\.(get|post|put|patch|delete)\s*\(\s*[\"']([^\"']+)[\"']"),
     # Express-style: router.get("/path", ...)
-    re.compile(
-        r"\w+\.(get|post|put|patch|delete)\s*\(\s*[\"']([^\"']+)[\"']"
-    ),
+    re.compile(r"\w+\.(get|post|put|patch|delete)\s*\(\s*[\"']([^\"']+)[\"']"),
 ]
 
 
@@ -65,9 +61,7 @@ class APIDocsGenerator:
             enabled=True,
         )
 
-    def _detect_endpoints(
-        self, repo_info: RepoInfo
-    ) -> list[tuple[str, str]]:
+    def _detect_endpoints(self, repo_info: RepoInfo) -> list[tuple[str, str]]:
         """Detect API endpoints from the file tree structure.
 
         Looks for common API-related file names and directories

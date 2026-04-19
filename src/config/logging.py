@@ -2,7 +2,6 @@
 
 import logging
 import sys
-from typing import Optional
 
 __all__ = ["setup_logging"]
 
@@ -22,10 +21,7 @@ def setup_logging(level: str = "INFO", json_format: bool = False) -> None:
     log_level = getattr(logging, level.upper(), logging.INFO)
 
     if json_format:
-        fmt = (
-            '{"timestamp":"%(asctime)s","level":"%(levelname)s",'
-            '"logger":"%(name)s","message":"%(message)s"}'
-        )
+        fmt = '{"timestamp":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","message":"%(message)s"}'
     else:
         fmt = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
 
