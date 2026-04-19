@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RepoDoc AI - Auto-Generate README</title>
+  <style>
+    :root { --bg: #0d1117; --surface: #161b22; --border: #30363d; --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff; --green: #3fb950; --purple: #bc8cff; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+    header { border-bottom: 1px solid var(--border); padding: 20px 0; }
+    header .container { display: flex; align-items: center; justify-content: space-between; }
+    .logo { display: flex; align-items: center; gap: 12px; font-size: 20px; font-weight: 600; color: var(--text); text-decoration: none; }
+    .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--green), var(--accent)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .nav-links { display: flex; gap: 24px; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .hero { text-align: center; padding: 80px 0 60px; }
+    .hero h1 { font-size: 48px; font-weight: 800; line-height: 1.2; margin-bottom: 16px; }
+    .hero h1 span { background: linear-gradient(135deg, var(--green), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero p { font-size: 20px; color: var(--muted); max-width: 600px; margin: 0 auto 32px; }
+    .cta-group { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn { padding: 12px 28px; border-radius: 8px; font-size: 16px; font-weight: 600; text-decoration: none; transition: all 0.2s; border: none; cursor: pointer; }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-primary:hover { background: #4ac959; }
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { border-color: var(--muted); }
+
+    .demo { padding: 60px 0; border-top: 1px solid var(--border); }
+    .demo h2 { text-align: center; font-size: 28px; margin-bottom: 8px; }
+    .demo .subtitle { text-align: center; color: var(--muted); margin-bottom: 32px; }
+    .demo-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+    .input-row { display: flex; gap: 12px; margin-bottom: 16px; }
+    .input-row input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px; }
+    .input-row input:focus { outline: none; border-color: var(--accent); }
+    .demo-btn { background: var(--green); color: #fff; padding: 10px 24px; border-radius: 6px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .demo-btn:hover { background: #4ac959; }
+    .demo-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .preview { margin-top: 24px; display: none; }
+    .preview.active { display: block; }
+    .preview-content { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px; font-family: 'SFMono-Regular', Consolas, monospace; font-size: 13px; white-space: pre-wrap; max-height: 500px; overflow-y: auto; line-height: 1.8; }
+
+    .steps { padding: 60px 0; border-top: 1px solid var(--border); }
+    .steps h2 { text-align: center; font-size: 28px; margin-bottom: 40px; }
+    .step-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .step-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; text-align: center; }
+    .step-num { width: 48px; height: 48px; background: linear-gradient(135deg, var(--green), var(--accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; margin: 0 auto 16px; }
+    .step-card h3 { font-size: 18px; margin-bottom: 8px; }
+    .step-card p { font-size: 14px; color: var(--muted); }
+
+    .sections-list { padding: 60px 0; border-top: 1px solid var(--border); }
+    .sections-list h2 { text-align: center; font-size: 28px; margin-bottom: 40px; }
+    .section-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .section-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .section-item .icon { font-size: 24px; margin-bottom: 8px; }
+    .section-item h4 { font-size: 15px; margin-bottom: 6px; }
+    .section-item p { font-size: 13px; color: var(--muted); }
+
+    footer { border-top: 1px solid var(--border); padding: 24px 0; text-align: center; color: var(--muted); font-size: 13px; }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    @media (max-width: 768px) { .step-grid { grid-template-columns: 1fr; } .hero h1 { font-size: 32px; } .input-row { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="#" class="logo"><div class="logo-icon">R</div>RepoDoc AI</a>
+      <nav class="nav-links">
+        <a href="#demo">Try It</a>
+        <a href="#how">How It Works</a>
+        <a href="#sections">Sections</a>
+        <a href="https://github.com/apps/repodoc-ai">Install</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Auto-generate your <span>README</span><br>from your code</h1>
+        <p>A GitHub App that scans your repo structure, detects your tech stack, and creates a professional README via pull request.</p>
+        <div class="cta-group">
+          <a href="https://github.com/apps/repodoc-ai" class="btn btn-primary">Install on GitHub</a>
+          <a href="#demo" class="btn btn-outline">Try the Demo</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="steps" id="how">
+      <div class="container">
+        <h2>How It Works</h2>
+        <div class="step-grid">
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <h3>Install</h3>
+            <p>Add RepoDoc AI to your GitHub repositories with one click</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <h3>Push</h3>
+            <p>Push code to your default branch — RepoDoc AI scans automatically</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <h3>Review</h3>
+            <p>A PR appears with your generated README — review and merge</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sections-list" id="sections">
+      <div class="container">
+        <h2>What Gets Generated</h2>
+        <div class="section-grid">
+          <div class="section-item"><div class="icon">&#x1F3F7;</div><h4>Title & Badges</h4><p>Project name, description, CI status, language, license, and framework badges</p></div>
+          <div class="section-item"><div class="icon">&#x2B50;</div><h4>Features</h4><p>Key features extracted from your code structure and package config keywords</p></div>
+          <div class="section-item"><div class="icon">&#x1F527;</div><h4>Tech Stack</h4><p>Auto-detected languages, frameworks, package managers, CI tools in a clean table</p></div>
+          <div class="section-item"><div class="icon">&#x1F4E6;</div><h4>Installation</h4><p>Getting started guide with the right commands for your package manager</p></div>
+          <div class="section-item"><div class="icon">&#x1F4C2;</div><h4>Project Structure</h4><p>ASCII directory tree with descriptions for key directories</p></div>
+          <div class="section-item"><div class="icon">&#x1F310;</div><h4>API Reference</h4><p>Auto-detected routes and endpoints from your code</p></div>
+          <div class="section-item"><div class="icon">&#x1F9EA;</div><h4>Testing</h4><p>How to run tests — detects pytest, jest, go test, cargo test</p></div>
+          <div class="section-item"><div class="icon">&#x1F4DD;</div><h4>Changelog</h4><p>Recent changes grouped by type from your commit history</p></div>
+          <div class="section-item"><div class="icon">&#x1F91D;</div><h4>Contributing</h4><p>Standard contributing guide and code of conduct reference</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="demo" id="demo">
+      <div class="container">
+        <h2>Try It Live</h2>
+        <p class="subtitle">Enter a public GitHub repo to see what RepoDoc AI would generate</p>
+        <div class="demo-card">
+          <div class="input-row">
+            <input type="text" id="owner" placeholder="Owner (e.g. AbdullahBakir97)" value="AbdullahBakir97">
+            <input type="text" id="repo" placeholder="Repository (e.g. ai-quality-gate)" value="ai-quality-gate">
+            <button class="demo-btn" onclick="generatePreview()" id="genBtn">Generate Preview</button>
+          </div>
+          <div class="preview" id="preview">
+            <h4 style="margin-bottom:12px;">Generated README Preview</h4>
+            <div class="preview-content" id="previewContent"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>RepoDoc AI &mdash; Open source GitHub App &mdash; <a href="https://github.com/AbdullahBakir97/repodoc-ai">GitHub</a></p>
+    </div>
+  </footer>
+
+  <script>
+    async function generatePreview() {
+      const owner = document.getElementById('owner').value.trim();
+      const repo = document.getElementById('repo').value.trim();
+      if (!owner || !repo) return;
+
+      const btn = document.getElementById('genBtn');
+      btn.disabled = true;
+      btn.textContent = 'Scanning...';
+
+      try {
+        // Fetch repo info from GitHub public API
+        const [repoData, tree, langs] = await Promise.all([
+          fetch(`https://api.github.com/repos/${owner}/${repo}`).then(r => r.json()),
+          fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/main?recursive=1`).then(r => r.json()).catch(() => ({tree:[]})),
+          fetch(`https://api.github.com/repos/${owner}/${repo}/languages`).then(r => r.json()),
+        ]);
+
+        const files = (tree.tree || []).filter(t => t.type === 'blob').map(t => t.path);
+        const dirs = (tree.tree || []).filter(t => t.type === 'tree').map(t => t.path);
+
+        // Detect tech
+        const langList = Object.entries(langs).map(([l,b]) => l);
+        const primaryLang = langList[0] || 'Unknown';
+        const hasDocker = files.some(f => f === 'Dockerfile');
+        const hasTests = dirs.some(d => d.match(/^tests?$|__tests__/));
+        const hasPyproject = files.includes('pyproject.toml');
+        const hasPackageJson = files.includes('package.json');
+        const hasGHA = dirs.some(d => d.startsWith('.github/workflows'));
+
+        // Build tree (2 levels)
+        const topLevel = [...new Set(files.map(f => f.split('/')[0]))].sort();
+
+        // Generate README
+        let readme = `# ${repoData.name}\n\n`;
+        readme += `![${primaryLang}](https://img.shields.io/badge/${primaryLang}-blue?style=for-the-badge) `;
+        readme += `![License](https://img.shields.io/github/license/${owner}/${repo}?style=for-the-badge)\n\n`;
+        readme += `${repoData.description || 'A ' + primaryLang + ' project.'}\n\n`;
+        readme += `## Tech Stack\n\n| Category | Technology |\n|----------|------------|\n`;
+        readme += `| Language | ${langList.join(', ')} |\n`;
+        if (hasDocker) readme += `| Container | Docker |\n`;
+        if (hasGHA) readme += `| CI/CD | GitHub Actions |\n`;
+        readme += `\n## Project Structure\n\n\`\`\`\n${repoData.name}/\n`;
+        topLevel.slice(0, 15).forEach(f => { readme += `├── ${f}${dirs.includes(f) ? '/' : ''}\n`; });
+        readme += `\`\`\`\n\n`;
+        readme += `## Getting Started\n\n\`\`\`bash\ngit clone https://github.com/${owner}/${repo}.git\ncd ${repo}\n`;
+        if (hasPyproject) readme += `pip install -e .\n`;
+        else if (hasPackageJson) readme += `npm install\n`;
+        readme += `\`\`\`\n\n`;
+        if (hasTests) readme += `## Testing\n\n\`\`\`bash\n${hasPyproject ? 'pytest' : 'npm test'}\n\`\`\`\n\n`;
+        readme += `## License\n\n${repoData.license ? repoData.license.spdx_id : 'See LICENSE file'}\n`;
+
+        document.getElementById('previewContent').textContent = readme;
+        document.getElementById('preview').classList.add('active');
+      } catch (e) {
+        document.getElementById('previewContent').textContent = 'Error: ' + e.message;
+        document.getElementById('preview').classList.add('active');
+      }
+      btn.disabled = false;
+      btn.textContent = 'Generate Preview';
+    }
+  </script>
+</body>
+</html>

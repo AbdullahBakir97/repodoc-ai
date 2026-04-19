@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools>=75.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "repodoc-ai"
+version = "1.0.0"
+description = "GitHub App that auto-generates README.md from your repository structure, commits, and code analysis."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12"
+authors = [{ name = "Abdullah Bakir", email = "abdullah.bakir.1997@gmail.com" }]
+keywords = ["github-app", "readme-generator", "documentation", "auto-docs"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: FastAPI",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Documentation",
+    "Topic :: Software Development :: Documentation",
+]
+
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.34.0",
+    "httpx>=0.28.0",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.7.0",
+    "PyJWT[crypto]>=2.10.0",
+    "PyYAML>=6.0.0",
+    "structlog>=24.4.0",
+    "tomli>=2.0.0;python_version<'3.11'",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "ruff>=0.8.0",
+]
+
+[project.scripts]
+repodoc-ai = "src.main:main"
+
+[project.urls]
+Homepage = "https://github.com/AbdullahBakir97/repodoc-ai"
+Repository = "https://github.com/AbdullahBakir97/repodoc-ai"
+Issues = "https://github.com/AbdullahBakir97/repodoc-ai/issues"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+ignore = ["E501", "B008", "RUF022"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
