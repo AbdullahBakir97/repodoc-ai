@@ -154,6 +154,12 @@
   </footer>
 
   <script>
+    const LANG_COLORS = {Python:"3776AB",JavaScript:"F7DF1E",TypeScript:"3178C6",Go:"00ADD8",Rust:"000000",Java:"ED8B00",Ruby:"CC342D","C#":"239120",PHP:"777BB4",C:"A8B9CC","C++":"00599C",Shell:"89e051",HTML:"E34F26",CSS:"1572B6",Swift:"F05138",Kotlin:"7F52FF",Dart:"0175C2",Scala:"DC322F"};
+    const FRAMEWORK_DETECT = {"fastapi":"FastAPI","django":"Django","flask":"Flask","express":"Express","next":"Next.js","react":"React","vue":"Vue.js","@angular/core":"Angular","spring":"Spring","rails":"Rails","laravel":"Laravel","gin":"Gin","svelte":"Svelte","nuxt":"Nuxt.js","fastify":"Fastify","nest":"NestJS","actix":"Actix"};
+    const FRAMEWORK_COLORS = {"FastAPI":"009688","Django":"092E20","Flask":"000000","Express":"000000","Next.js":"000000","React":"61DAFB","Vue.js":"4FC08D","Angular":"DD0031","Spring":"6DB33F","Rails":"CC0000","NestJS":"E0234E","Svelte":"FF3E00"};
+    const DIR_DESCRIPTIONS = {src:"Source code",lib:"Library code",app:"Application code",api:"API layer",tests:"Test suite",test:"Test suite",docs:"Documentation",scripts:"Utility scripts",config:"Configuration",public:"Static assets",static:"Static files",templates:"HTML templates",models:"Data models",views:"View layer",controllers:"Controllers",services:"Business logic",utils:"Utility functions",helpers:"Helper functions",middleware:"Middleware",routes:"Route definitions",components:"UI components",pages:"Page components",hooks:"React hooks",styles:"Stylesheets",assets:"Assets",database:"Database","db":"Database",migrations:"DB migrations",fixtures:"Test fixtures",plugins:"Plugins",extensions:"Extensions"};
+    const SKIP_DIRS = new Set([".git","node_modules","__pycache__",".venv","venv",".env","dist","build",".next",".nuxt","target",".idea",".vscode","coverage",".pytest_cache",".mypy_cache",".ruff_cache","__pycache__","egg-info"]);
+
     async function generatePreview() {
       const owner = document.getElementById('owner').value.trim();
       const repo = document.getElementById('repo').value.trim();
@@ -161,54 +167,209 @@
 
       const btn = document.getElementById('genBtn');
       btn.disabled = true;
-      btn.textContent = 'Scanning...';
+      btn.textContent = 'Scanning repository...';
 
       try {
-        // Fetch repo info from GitHub public API
-        const [repoData, tree, langs] = await Promise.all([
+        const [repoData, treeData, langs, commitsData, pkgContent] = await Promise.all([
           fetch(`https://api.github.com/repos/${owner}/${repo}`).then(r => r.json()),
-          fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/main?recursive=1`).then(r => r.json()).catch(() => ({tree:[]})),
+          fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${encodeURIComponent('main')}?recursive=1`).then(r => r.json()).catch(() => fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/master?recursive=1`).then(r => r.json())).catch(() => ({tree:[]})),
           fetch(`https://api.github.com/repos/${owner}/${repo}/languages`).then(r => r.json()),
+          fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=15`).then(r => r.json()).catch(() => []),
+          fetch(`https://api.github.com/repos/${owner}/${repo}/contents/package.json`).then(r => r.json()).then(d => JSON.parse(atob(d.content))).catch(() => null),
         ]);
 
-        const files = (tree.tree || []).filter(t => t.type === 'blob').map(t => t.path);
-        const dirs = (tree.tree || []).filter(t => t.type === 'tree').map(t => t.path);
+        const files = (treeData.tree||[]).filter(t => t.type==='blob').map(t => t.path);
+        const dirs = (treeData.tree||[]).filter(t => t.type==='tree').map(t => t.path);
+        const allPaths = [...files, ...dirs];
+        const langEntries = Object.entries(langs);
+        const totalBytes = langEntries.reduce((s,[,b]) => s+b, 0);
+        const langList = langEntries.map(([l,b]) => ({name:l, pct:Math.round(b/totalBytes*100)}));
+        const primaryLang = langList[0]?.name || 'Unknown';
 
-        // Detect tech
-        const langList = Object.entries(langs).map(([l,b]) => l);
-        const primaryLang = langList[0] || 'Unknown';
-        const hasDocker = files.some(f => f === 'Dockerfile');
-        const hasTests = dirs.some(d => d.match(/^tests?$|__tests__/));
+        // Detect framework
+        let framework = null;
+        if (pkgContent?.dependencies) {
+          for (const [dep, fw] of Object.entries(FRAMEWORK_DETECT)) {
+            if (pkgContent.dependencies[dep] || pkgContent.devDependencies?.[dep]) { framework = fw; break; }
+          }
+        }
+        const pyDeps = files.filter(f => f === 'pyproject.toml' || f === 'requirements.txt');
+        if (!framework && pyDeps.length) {
+          // Check common Python frameworks from file patterns
+          if (files.some(f => f.includes('fastapi') || f.includes('api/app'))) framework = 'FastAPI';
+          else if (files.some(f => f.includes('django') || f === 'manage.py')) framework = 'Django';
+          else if (files.some(f => f.includes('flask'))) framework = 'Flask';
+        }
+
+        const hasDocker = files.includes('Dockerfile');
+        const hasTests = dirs.some(d => /^tests?$|__tests__/.test(d));
+        const hasDocs = dirs.some(d => /^docs?$/.test(d));
+        const hasGHA = dirs.some(d => d.startsWith('.github/workflows'));
         const hasPyproject = files.includes('pyproject.toml');
         const hasPackageJson = files.includes('package.json');
-        const hasGHA = dirs.some(d => d.startsWith('.github/workflows'));
+        const hasPoetryLock = files.includes('poetry.lock');
+        const hasYarnLock = files.includes('yarn.lock');
+        const hasPnpmLock = files.includes('pnpm-lock.yaml');
+        const hasCargoToml = files.includes('Cargo.toml');
+        const hasGoMod = files.includes('go.mod');
 
-        // Build tree (2 levels)
-        const topLevel = [...new Set(files.map(f => f.split('/')[0]))].sort();
+        let pkgMgr = 'Unknown';
+        if (hasPoetryLock) pkgMgr = 'Poetry';
+        else if (hasPnpmLock) pkgMgr = 'pnpm';
+        else if (hasYarnLock) pkgMgr = 'Yarn';
+        else if (hasPackageJson) pkgMgr = 'npm';
+        else if (hasPyproject) pkgMgr = 'pip';
+        else if (hasCargoToml) pkgMgr = 'Cargo';
+        else if (hasGoMod) pkgMgr = 'Go Modules';
 
-        // Generate README
-        let readme = `# ${repoData.name}\n\n`;
-        readme += `![${primaryLang}](https://img.shields.io/badge/${primaryLang}-blue?style=for-the-badge) `;
-        readme += `![License](https://img.shields.io/github/license/${owner}/${repo}?style=for-the-badge)\n\n`;
-        readme += `${repoData.description || 'A ' + primaryLang + ' project.'}\n\n`;
-        readme += `## Tech Stack\n\n| Category | Technology |\n|----------|------------|\n`;
-        readme += `| Language | ${langList.join(', ')} |\n`;
-        if (hasDocker) readme += `| Container | Docker |\n`;
-        if (hasGHA) readme += `| CI/CD | GitHub Actions |\n`;
-        readme += `\n## Project Structure\n\n\`\`\`\n${repoData.name}/\n`;
-        topLevel.slice(0, 15).forEach(f => { readme += `├── ${f}${dirs.includes(f) ? '/' : ''}\n`; });
-        readme += `\`\`\`\n\n`;
-        readme += `## Getting Started\n\n\`\`\`bash\ngit clone https://github.com/${owner}/${repo}.git\ncd ${repo}\n`;
-        if (hasPyproject) readme += `pip install -e .\n`;
-        else if (hasPackageJson) readme += `npm install\n`;
-        readme += `\`\`\`\n\n`;
-        if (hasTests) readme += `## Testing\n\n\`\`\`bash\n${hasPyproject ? 'pytest' : 'npm test'}\n\`\`\`\n\n`;
-        readme += `## License\n\n${repoData.license ? repoData.license.spdx_id : 'See LICENSE file'}\n`;
+        // === BUILD README ===
+        let r = '';
 
-        document.getElementById('previewContent').textContent = readme;
+        // Header + Badges
+        r += `# ${repoData.name}\n\n`;
+        const badges = [];
+        const pc = LANG_COLORS[primaryLang] || '007EC6';
+        badges.push(`![${primaryLang}](https://img.shields.io/badge/${encodeURIComponent(primaryLang)}-${pc}?style=for-the-badge&logo=${encodeURIComponent(primaryLang.toLowerCase())}&logoColor=white)`);
+        if (framework) {
+          const fc = FRAMEWORK_COLORS[framework] || '333';
+          badges.push(`![${framework}](https://img.shields.io/badge/${encodeURIComponent(framework.replace('.',''))}-${fc}?style=for-the-badge&logo=${encodeURIComponent(framework.toLowerCase().replace('.js','dotjs'))}&logoColor=white)`);
+        }
+        badges.push(`![License](https://img.shields.io/github/license/${owner}/${repo}?style=for-the-badge)`);
+        if (hasGHA) badges.push(`![CI](https://img.shields.io/github/actions/workflow/status/${owner}/${repo}/ci.yml?style=for-the-badge&label=CI)`);
+        if (hasDocker) badges.push(`![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)`);
+        if (hasTests) badges.push(`![Tests](https://img.shields.io/badge/Tests-passing-brightgreen?style=for-the-badge)`);
+        r += badges.join(' ') + '\n\n';
+        r += `${repoData.description || 'A modern ' + primaryLang + ' project.'}\n\n`;
+
+        // Features (from topics or structure)
+        const topics = repoData.topics || [];
+        if (topics.length > 0 || framework) {
+          r += `## Features\n\n`;
+          if (framework) r += `- Built with **${framework}** framework\n`;
+          if (hasDocker) r += `- Docker containerization support\n`;
+          if (hasGHA) r += `- Automated CI/CD with GitHub Actions\n`;
+          if (hasTests) r += `- Comprehensive test suite\n`;
+          if (hasDocs) r += `- Full documentation included\n`;
+          topics.forEach(t => r += `- ${t.charAt(0).toUpperCase() + t.slice(1).replace(/-/g, ' ')}\n`);
+          r += '\n';
+        }
+
+        // Tech Stack
+        r += `## Tech Stack\n\n`;
+        r += `| Category | Technology |\n|----------|------------|\n`;
+        r += `| **Language** | ${langList.map(l => `${l.name} (${l.pct}%)`).join(', ')} |\n`;
+        if (framework) r += `| **Framework** | ${framework} |\n`;
+        r += `| **Package Manager** | ${pkgMgr} |\n`;
+        if (hasGHA) r += `| **CI/CD** | GitHub Actions |\n`;
+        if (hasDocker) r += `| **Container** | Docker |\n`;
+        r += `| **License** | ${repoData.license?.spdx_id || 'See LICENSE'} |\n\n`;
+
+        // Project Structure (nested tree)
+        r += `## Project Structure\n\n\`\`\`\n${repo}/\n`;
+        const topItems = [...new Set(allPaths.map(p => p.split('/')[0]))].filter(f => !SKIP_DIRS.has(f) && !f.startsWith('.')).sort((a,b) => {
+          const aDir = dirs.includes(a), bDir = dirs.includes(b);
+          if (aDir !== bDir) return aDir ? -1 : 1;
+          return a.localeCompare(b);
+        });
+        topItems.forEach((item, i) => {
+          const isDir = dirs.includes(item);
+          const isLast = i === topItems.length - 1;
+          const prefix = isLast ? '└── ' : '├── ';
+          const desc = DIR_DESCRIPTIONS[item] ? `  # ${DIR_DESCRIPTIONS[item]}` : '';
+          r += `${prefix}${item}${isDir ? '/' : ''}${desc}\n`;
+          if (isDir) {
+            const children = allPaths.filter(p => p.startsWith(item+'/') && p.split('/').length === 2 && !SKIP_DIRS.has(p.split('/')[1])).map(p => p.split('/')[1]).sort().slice(0, 8);
+            const connector = isLast ? '    ' : '│   ';
+            children.forEach((child, ci) => {
+              const childIsDir = dirs.includes(item+'/'+child);
+              const childPrefix = ci === children.length - 1 ? '└── ' : '├── ';
+              const childDesc = DIR_DESCRIPTIONS[child] ? `  # ${DIR_DESCRIPTIONS[child]}` : '';
+              r += `${connector}${childPrefix}${child}${childIsDir ? '/' : ''}${childDesc}\n`;
+            });
+            const totalChildren = allPaths.filter(p => p.startsWith(item+'/') && p.split('/').length === 2).length;
+            if (totalChildren > 8) r += `${connector}└── ... (${totalChildren - 8} more)\n`;
+          }
+        });
+        r += `\`\`\`\n\n`;
+
+        // Installation
+        r += `## Getting Started\n\n### Prerequisites\n\n`;
+        if (primaryLang === 'Python') r += `- Python 3.12+\n- pip\n\n`;
+        else if (primaryLang === 'JavaScript' || primaryLang === 'TypeScript') r += `- Node.js 18+\n- ${pkgMgr}\n\n`;
+        else if (primaryLang === 'Go') r += `- Go 1.21+\n\n`;
+        else if (primaryLang === 'Rust') r += `- Rust (latest stable)\n- Cargo\n\n`;
+        r += `### Installation\n\n\`\`\`bash\n# Clone the repository\ngit clone https://github.com/${owner}/${repo}.git\ncd ${repo}\n\n# Install dependencies\n`;
+        if (hasPoetryLock) r += `poetry install\n`;
+        else if (hasPyproject) r += `pip install -e ".[dev]"\n`;
+        else if (files.includes('requirements.txt')) r += `pip install -r requirements.txt\n`;
+        else if (hasPnpmLock) r += `pnpm install\n`;
+        else if (hasYarnLock) r += `yarn install\n`;
+        else if (hasPackageJson) r += `npm install\n`;
+        else if (hasCargoToml) r += `cargo build\n`;
+        else if (hasGoMod) r += `go mod download\n`;
+        r += `\`\`\`\n\n`;
+
+        // Run
+        r += `### Running\n\n\`\`\`bash\n`;
+        if (hasPyproject) r += `python -m src.main\n`;
+        else if (pkgContent?.scripts?.start) r += `npm start\n`;
+        else if (pkgContent?.scripts?.dev) r += `npm run dev\n`;
+        else if (hasCargoToml) r += `cargo run\n`;
+        else if (hasGoMod) r += `go run .\n`;
+        else r += `# See documentation for run instructions\n`;
+        r += `\`\`\`\n\n`;
+
+        // Docker
+        if (hasDocker) {
+          r += `### Docker\n\n\`\`\`bash\ndocker build -t ${repo} .\ndocker run -p 8000:8000 --env-file .env ${repo}\n\`\`\`\n\n`;
+        }
+
+        // Testing
+        if (hasTests) {
+          r += `## Testing\n\n\`\`\`bash\n`;
+          if (hasPyproject || primaryLang === 'Python') r += `pytest -v\n`;
+          else if (hasPackageJson) r += `npm test\n`;
+          else if (hasCargoToml) r += `cargo test\n`;
+          else if (hasGoMod) r += `go test ./...\n`;
+          r += `\`\`\`\n\n`;
+        }
+
+        // Recent Changes (from commits)
+        if (Array.isArray(commitsData) && commitsData.length > 0) {
+          const feats = [], fixes = [], others = [];
+          commitsData.slice(0, 10).forEach(c => {
+            const msg = c.commit?.message?.split('\n')[0] || '';
+            if (msg.startsWith('feat')) feats.push(msg.replace(/^feat[:(]?\s*[^)]*\)?\s*:?\s*/, ''));
+            else if (msg.startsWith('fix')) fixes.push(msg.replace(/^fix[:(]?\s*[^)]*\)?\s*:?\s*/, ''));
+            else if (!msg.startsWith('Merge')) others.push(msg);
+          });
+          if (feats.length || fixes.length || others.length) {
+            r += `## Recent Changes\n\n`;
+            if (feats.length) { r += `### New Features\n\n`; feats.forEach(f => r += `- ${f}\n`); r += '\n'; }
+            if (fixes.length) { r += `### Bug Fixes\n\n`; fixes.forEach(f => r += `- ${f}\n`); r += '\n'; }
+            if (others.length && !feats.length && !fixes.length) { others.slice(0,5).forEach(o => r += `- ${o}\n`); r += '\n'; }
+          }
+        }
+
+        // Contributing
+        r += `## Contributing\n\nContributions are welcome! Please feel free to submit a Pull Request.\n\n`;
+        r += `1. Fork the repository\n2. Create your feature branch (\`git checkout -b feature/amazing-feature\`)\n`;
+        r += `3. Commit your changes (\`git commit -m 'feat: add amazing feature'\`)\n`;
+        r += `4. Push to the branch (\`git push origin feature/amazing-feature\`)\n`;
+        r += `5. Open a Pull Request\n\n`;
+
+        // License
+        r += `## License\n\n`;
+        r += `This project is licensed under the ${repoData.license?.spdx_id || 'MIT'} License — see the [LICENSE](LICENSE) file for details.\n\n`;
+
+        // Footer
+        r += `---\n\n`;
+        r += `*Generated with [RepoDoc AI](https://github.com/AbdullahBakir97/repodoc-ai)*\n`;
+
+        document.getElementById('previewContent').textContent = r;
         document.getElementById('preview').classList.add('active');
       } catch (e) {
-        document.getElementById('previewContent').textContent = 'Error: ' + e.message;
+        document.getElementById('previewContent').textContent = 'Error: ' + e.message + '\n\nMake sure the repository exists and is public.';
         document.getElementById('preview').classList.add('active');
       }
       btn.disabled = false;
