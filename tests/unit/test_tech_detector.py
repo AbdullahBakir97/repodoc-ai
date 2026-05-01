@@ -35,7 +35,9 @@ class TestTechDetector:
 
     def test_detects_fastapi(self, detector: TechDetector):
         tree = [FileNode("main.py", "main.py", False)]
-        config = {"dependencies": {"fastapi": ">=0.100"}}
+        # The detector expects config keyed by source filename
+        # (the file_parser produces this shape in production).
+        config = {"pyproject.toml": {"dependencies": {"fastapi": ">=0.100"}}}
         stack = detector.detect(tree, config)
         assert stack.framework == Framework.FASTAPI
 
